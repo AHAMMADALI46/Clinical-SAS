@@ -76,7 +76,7 @@ run;
 Data exp1 (keep=usubjid rfxendtc);
 set raw. stdymedw (where=(stopdtp="DY"));
 usubjid=Catx("-" study, stdysite, patient);
-if stopdtp="DY" then rfxendtc=Put(datepart(stopdt), IS8601DT.);
+if stopdtp="DY" then rfxendtc=Put(datepart(stopdt), IS8601DA.);
 run;
 
 %sort (Exp1, usubjid);
@@ -87,4 +87,50 @@ by usubjid;
 run;
 
 /*Merge Exp, Exp2 to Dthfl*/
+%Sort (Dthfl, Usubjid);
+%sort (Exp,Usubjid);
+%sort (Exp2,Usubjid);
+
+Data Final;
+merge Dthfl(In=A) exp exp2;
+by usubjid;
+if A;
+run;
+
+Data final_;
+set final;
+if usubjid="3144102-007-000708" then Rfxendtc=Rfxstdtc;
+run;
+
+/*To derive Rficdyc extact raw eligibil data*/
+data consent (keep=usubjid Rficdtc);
+set raw.eligibil (where=(lblstyp="consent"));
+usubjid=Catx("-" study, stdysite, patient);
+Rficdtc=Put(Datepar(consdt), IS8601DA.);
+run;
+
+/*Merge consent to final_*/
+%sort (Final_,Usubjid);
+%sort (Consent,Usubjid);
+
+Data Dm_ICF;
+merge final_(In=A) consent;
+by usubjid;
+if A;
+run;
+
+/*Calculating study day collection*/
+/*if DMDTC<RFSTDTC then DMDY=DMDTC<RFSTDTC; else if DMDTC>=RFSTDTC then DMDY=(DMDTC-RFSTDTC
+Data dm;
+set dm_ICF;
+x=input(DMDTC,yymmdd10.);
+y=input(Rfstdtc, yymmdd10.);
+if x<y then dmdy=x-y;
+else if x>=y then dmdy=(X-Y)+1;
+run; 
+
+
+
+
+
 
