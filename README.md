@@ -121,13 +121,27 @@ run;
 
 /*Calculating study day collection*/
 /*if DMDTC<RFSTDTC then DMDY=DMDTC<RFSTDTC; else if DMDTC>=RFSTDTC then DMDY=(DMDTC-RFSTDTC
-Data dm;
+Data dm (drop=x y DMDTN RFSTDTN);
 set dm_ICF;
 x=input(DMDTC,yymmdd10.);
 y=input(Rfstdtc, yymmdd10.);
+if x ne. and y ne. then do;
 if x<y then dmdy=x-y;
 else if x>=y then dmdy=(X-Y)+1;
+dmdtn=input(dmdtc, yymmdd10.);
+rfstdtn=input(rfstdtc, yymmdd10.);
+(/*or
+if nmiss (DMDTN, RFSTDTN)=0 then do;
+if DMDTN< RFSTDTN then DMDY1=DMDTN-RFSTDTN;
+else id dmdtn>=RFSTDTN then DMDY1=(DMDTN-RFSTDTN)+1;
+end; */)
 run; 
+
+/*created permeanent library name SDT*/
+Data sdt.sdtm_dm;
+set dm;
+run;
+
 
 
 
