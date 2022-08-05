@@ -1,5 +1,24 @@
 # Clinical-SAS
-Clinical SAS
+/*Clinical SAS*/
+Options Validvarname=upcase nofmterr missing='';
+Data demo;
+set raw.demowide (Drop=Studyid);
+run;
+
+Data demo1 (keep=studyid domain usubjid country subjid siteid brthdtc age ageu sex_ Race_);
+set demo(where=(Tpcode ne ' '));
+studyid=study;
+domain="dm";
+usubjid=catx("-", study, stdysite, patien);
+subjid=patient;
+siteid=stdysite;
+brthdtc=strip(Put(datepart(birthd), Iso8601DA.));
+sex_=first(sex);
+if index(Race, "other")>0 then Race_="other";
+else if race /* Cut*/
+
+
+
 /*To derive Rfpendtc extract conclus raw data*/
 data rfp (keep=Usubjid Rfpendtc rfendtc);
 set raw.conclus;
@@ -46,3 +65,26 @@ Invnam=" ";
 run;
 
 /* To Derive RFXSTDTC RFXENDTC EXTRACT STUDYMEDW DATA*/
+Data exp (keep=usubjid rfxstdtc);
+set raw. stdymedw;
+where stint="single dose period";
+usubjid=Catx("-" study, stdysite, patient);
+if startdtp="MI" then rfxstdtc=Put(startdt, IS8601DT.);
+else if startdtp="DY" then rfxstdtc=Put(datepart(startdt), IS8601DA.);
+run;
+
+Data exp1 (keep=usubjid rfxendtc);
+set raw. stdymedw (where=(stopdtp="DY"));
+usubjid=Catx("-" study, stdysite, patient);
+if stopdtp="DY" then rfxendtc=Put(datepart(stopdt), IS8601DT.);
+run;
+
+%sort (Exp1, usubjid);
+Data exp2;
+set exp1;
+if last.usubjid;
+by usubjid;
+run;
+
+/*Merge Exp, Exp2 to Dthfl*/
+
